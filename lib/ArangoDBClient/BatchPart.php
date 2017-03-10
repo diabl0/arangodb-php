@@ -89,7 +89,7 @@ class BatchPart
     {
         $sanitize = false;
         $options  = array_merge($options, $this->getCursorOptions());
-        
+
         if (isset($options['_documentClass'])) {
             $this->setDocumentClass($options['_documentClass']);
         }
@@ -246,11 +246,21 @@ class BatchPart
 
         $response = $this->getResponse();
         switch ($this->_type) {
-            case 'getdocument':
+            case 'first':
                 $json             = $response->getJson();
-                $options          = $this->getCursorOptions();
-                $options['isNew'] = false;
-                $response         = $_documentClass::createFromArray($json, $options);
+                if (!isset($json['error']) || $json['error'] === false) {
+                    $options           = $this->getCursorOptions();
+                    $options['_isNew'] = false;
+                    $response          = $_documentClass::createFromArray($json['document'], $options);
+                } else {
+                    $response          = false;
+                }
+                break;
+            case 'getdocument':
+                $json              = $response->getJson();
+                $options           = $this->getCursorOptions();
+                $options['_isNew'] = false;
+                $response          = $_documentClass::createFromArray($json, $options);
                 break;
             case 'document':
                 $json = $response->getJson();
@@ -260,16 +270,25 @@ class BatchPart
                 }
                 break;
             case 'getedge':
-                $json             = $response->getJson();
-                $options          = $this->getCursorOptions();
-                $options['isNew'] = false;
-                $response         = Edge::createFromArray($json, $options);
+                $json              = $response->getJson();
+                $options           = $this->getCursorOptions();
+                $options['_isNew'] = false;
+                $response          = Edge::createFromArray($json, $options);
                 break;
             case 'edge':
                 $json = $response->getJson();
                 if (!isset($json['error']) || $json['error'] === false) {
                     $id       = $json[Edge::ENTRY_ID];
                     $response = $id;
+                }
+                break;
+            case 'getedges':
+                $json              = $response->getJson();
+                $options           = $this->getCursorOptions();
+                $options['_isNew'] = false;
+                $response          = [];
+                foreach ($json[EdgeHandler::ENTRY_EDGES] as $data) {
+                    $response[] = Edge::createFromArray($data, $options);
                 }
                 break;
             case 'getcollection':
@@ -284,12 +303,22 @@ class BatchPart
                 }
                 break;
             case 'cursor':
+            case 'all':
+            case 'by':
                 $options          = $this->getCursorOptions();
                 $options['isNew'] = false;
 
-                $options          = array_merge(['_documentClass' => $this->_documentClass], $options);
-                $response         = new Cursor($this->_batch->getConnection(), $response->getJson(), $options);
+                $options  = array_merge(['_documentClass' => $this->_documentClass], $options);
+                $response = new Cursor($this->_batch->getConnection(), $response->getJson(), $options);
                 break;
+            case 'remove':
+                $json     = $response->getJson();
+                $response = [
+                    'removed' => $json['removed'],
+                    'ignored' => $json['ignored']
+                ];
+                break;
+                
             default:
                 throw new ClientException('Could not determine response data type.');
                 break;

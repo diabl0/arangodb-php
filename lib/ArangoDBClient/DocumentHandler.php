@@ -121,6 +121,9 @@ class DocumentHandler extends Handler
      */
     public function getById($collection, $documentId, array $options = [])
     {
+        if (strpos($documentId, '/') !== false) {
+            @list($collection ,$documentId) = explode('/', $documentId);
+        }
         $data              = $this->getDocument(Urls::URL_DOCUMENT, $collection, $documentId, $options);
         $options['_isNew'] = false;
 
@@ -245,7 +248,7 @@ class DocumentHandler extends Handler
      */
     protected function createFromArrayWithContext($data, $options)
     {
-        $_documentClass =  $this->_documentClass;
+        $_documentClass = $this->_documentClass;
 
         return $_documentClass::createFromArray($data, $options);
     }
@@ -317,8 +320,8 @@ class DocumentHandler extends Handler
      */
     public function save($collection, $document, array $options = [])
     {
-        $collection = $this->makeCollection($collection);
-        $_documentClass =  $this->_documentClass;
+        $collection     = $this->makeCollection($collection);
+        $_documentClass = $this->_documentClass;
 
         $params = $this->includeOptionsInParams(
             $options, [
@@ -458,8 +461,8 @@ class DocumentHandler extends Handler
      */
     protected function patch($url, $collection, $documentId, Document $document, array $options = [])
     {
-        $collection = $this->makeCollection($collection);
-        $_documentClass =  $this->_documentClass;
+        $collection     = $this->makeCollection($collection);
+        $_documentClass = $this->_documentClass;
 
         $params = $this->includeOptionsInParams(
             $options, [
@@ -577,8 +580,8 @@ class DocumentHandler extends Handler
      */
     protected function put($url, $collection, $documentId, Document $document, array $options = [])
     {
-        $collection = $this->makeCollection($collection);
-        $_documentClass =  $this->_documentClass;
+        $collection     = $this->makeCollection($collection);
+        $_documentClass = $this->_documentClass;
 
         $params = $this->includeOptionsInParams(
             $options, [

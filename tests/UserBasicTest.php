@@ -9,8 +9,6 @@
 
 namespace ArangoDBClient;
 
-use Installer\Exception;
-
 /**
  * Class UserBasicTest
  *
@@ -88,7 +86,11 @@ class UserBasicTest extends
         static::assertTrue($result);
 
         $result = $userHandler->getDatabases('testUser42');
-        static::assertEquals(['_system' => 'none'], $result);
+        // never versions of ArangoDB do not return "none" for 
+        // databases for which there are no permissions
+        if (!empty($result)) {
+          static::assertEquals(['_system' => 'none'], $result);
+        }
     }
 
 
@@ -132,7 +134,7 @@ class UserBasicTest extends
             $this->userHandler->addUser('testUser1', 'testPass1', true, ['level' => 1]);
         } catch (\Exception $e) {
             // Just give us the $e
-            static::assertEquals(400, $e->getCode());
+            static::assertTrue($e->getCode() === 400 || $e->getCode() === 409);
         }
         static::assertInstanceOf(ServerException::class, $e, 'should have gotten an exception');
 

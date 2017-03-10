@@ -1,9 +1,37 @@
 #!/bin/bash
 
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-cd $DIR
+echo "PHP version: $TRAVIS_PHP_VERSION"
 
-VERSION="devel-nightly"
+if [[ "$TRAVIS_PHP_VERSION" == "5.6" ]] ; then 
+wget "https://phar.phpunit.de/phpunit-5.7.phar"
+mv phpunit-5.7.phar ./phpunit
+fi
+
+if [[ "$TRAVIS_PHP_VERSION" == "7.0" ]] ; then 
+wget "https://phar.phpunit.de/phpunit-6.0.phar"
+mv phpunit-6.0.phar ./phpunit
+fi
+
+if [[ "$TRAVIS_PHP_VERSION" == "7.1" ]] ; then 
+wget "https://phar.phpunit.de/phpunit-6.0.phar"
+mv phpunit-6.0.phar ./phpunit
+fi
+
+if [[ "$TRAVIS_PHP_VERSION" == "hhvm" ]] ; then 
+wget "https://phar.phpunit.de/phpunit-5.7.phar"
+mv phpunit-5.7.phar ./phpunit
+fi
+
+chmod +x ./phpunit
+
+echo "./phpunit --version"
+./phpunit --version
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+echo "cd $DIR"
+cd "$DIR"
+
+VERSION="devel"
 NAME="ArangoDB-$VERSION"
 
 if [ ! -d "$DIR/$NAME" ]; then
@@ -29,6 +57,7 @@ fi
 mkdir ${TMP_DIR}
 
 echo "Starting ArangoDB '${ARANGOD}'"
+echo "pwd: `pwd`"
 
 ${ARANGOD} \
     --database.directory ${TMP_DIR} \

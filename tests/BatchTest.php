@@ -439,6 +439,86 @@ class BatchTest extends
         $batch->process();
     }
 
+    public function testRemoveByKeysInBatch()
+    {
+        $connection        = $this->connection;
+        $collection        = $this->collection;
+        $document1         = Document::createFromArray([ "foo" => "bar" ]);
+        $document2         = Document::createFromArray([ "foo" => "baz" ]);
+        $documentHandler   = new DocumentHandler($connection);
+
+        $documentId1 = $documentHandler->save($collection->getName(), $document1);
+        $documentId2 = $documentHandler->save($collection->getName(), $document2);
+
+        $resultingDocument1 = $documentHandler->get($collection->getName(), $documentId1);
+        $resultingDocument2 = $documentHandler->get($collection->getName(), $documentId2);
+
+        $id1 = $resultingDocument1->getInternalKey();
+        $id2 = $resultingDocument2->getInternalKey();
+
+        $batch = new Batch($this->connection);
+        $batch->startCapture();
+
+        $part = $this->collectionHandler->removeByKeys($collection->getName(), [ $id1, $id2 ]);
+
+        static::assertInstanceOf(BatchPart::class, $part);
+        
+        $batch->process();
+
+        $result = $batch->getPart(0)->getProcessedResponse();
+
+        static::assertEquals(['removed' => 2, 'ignored' => 0 ], $result);
+
+        $existing = 0;
+        try {
+            $resultingDocument1 = $documentHandler->get($collection->getName(), $documentId1);
+            $existing++;
+        } catch(Exception $e) {}
+        try {
+            $resultingDocument2 = $documentHandler->get($collection->getName(), $documentId2);        
+            $existing++;
+        } catch(Exception $e) {}
+        
+        static::assertTrue($existing == 0, 'Batch removeByKeys not removed all documents!');
+    }
+
+    public function testCollectionHandlerAllInBatch()
+    {
+        $connection        = $this->connection;
+        $collection        = $this->collection;
+        $document1         = Document::createFromArray([ "foo" => "bar" ]);
+        $document2         = Document::createFromArray([ "foo" => "baz" ]);
+        $documentHandler   = new DocumentHandler($connection);
+
+        $documentId1 = $documentHandler->save($collection->getName(), $document1);
+        $documentId2 = $documentHandler->save($collection->getName(), $document2);
+
+        $documentIds = [];
+        $cursor = $this->collectionHandler->all($collection->getName());
+        foreach($cursor->getAll() as $doc) {
+            $documentIds[$doc->getId()] = $doc;
+        }
+        
+        $batch = new Batch($this->connection);
+        $batch->startCapture();
+
+        $part = $this->collectionHandler->all($collection->getName());
+
+        static::assertInstanceOf(BatchPart::class, $part);
+        
+        $batch->process();
+
+        $cursor = $batch->getPart(0)->getProcessedResponse();
+        $results = $cursor->getAll();
+        
+        static::assertInstanceOf(Cursor::class, $cursor);
+        static::assertTrue(count($documentIds) == count($results));
+        
+        foreach($results as $result) {
+            static::assertTrue(isset($documentIds[$result->getId()]));
+            static::assertEquals($documentIds[$result->getId()], $result);
+        }
+    }
 
     public function tearDown()
     {

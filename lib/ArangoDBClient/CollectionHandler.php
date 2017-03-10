@@ -787,6 +787,7 @@ class CollectionHandler extends Handler
      *                                   </p>
      *
      *                                   Other options as described in API Documentation*
+     *
      * @see https://docs.arangodb.com/3.1/HTTP/BulkImports/
      *
      * @return array
@@ -1153,8 +1154,13 @@ class CollectionHandler extends Handler
         );
 
         $response = $this->getConnection()->put(Urls::URL_ALL, $this->json_encode_wrapper($body));
+        
+        if ($batchPart = $response->getBatchPart()) {
+            return $batchPart;
+        }
 
         $options = array_merge(['_documentClass' => $this->_documentClass], $options);
+
         return new Cursor($this->getConnection(), $response->getJson(), $options);
     }
 
@@ -1249,9 +1255,14 @@ class CollectionHandler extends Handler
 
         $response = $this->getConnection()->put(Urls::URL_EXAMPLE, $this->json_encode_wrapper($body));
 
+        if ($batchPart = $response->getBatchPart()) {
+            return $batchPart;
+        }
+
         $options['isNew'] = false;
 
         $options = array_merge(['_documentClass' => $this->_documentClass], $options);
+
         return new Cursor($this->getConnection(), $response->getJson(), $options);
     }
 
@@ -1298,6 +1309,11 @@ class CollectionHandler extends Handler
         ];
 
         $response = $this->getConnection()->put(Urls::URL_FIRST_EXAMPLE, $this->json_encode_wrapper($data));
+        
+        if ($batchPart = $response->getBatchPart()) {
+            return $batchPart;
+        }
+        
         $data     = $response->getJson();
 
         $options['_isNew'] = false;
@@ -1359,9 +1375,10 @@ class CollectionHandler extends Handler
 
         $response = $this->getConnection()->put(Urls::URL_FULLTEXT, $this->json_encode_wrapper($body));
 
-        $options['isNew'] = false;
+        $options['_isNew'] = false;
 
         $options = array_merge(['_documentClass' => $this->_documentClass], $options);
+
         return new Cursor($this->getConnection(), $response->getJson(), $options);
     }
 
@@ -1594,6 +1611,10 @@ class CollectionHandler extends Handler
         );
 
         $response = $this->getConnection()->put(Urls::URL_REMOVE_BY_KEYS, $this->json_encode_wrapper($body));
+        
+        if ($batchPart = $response->getBatchPart()) {
+            return $batchPart;
+        }
 
         $responseArray = $response->getJson();
 
@@ -1708,6 +1729,7 @@ class CollectionHandler extends Handler
         $response = $this->getConnection()->put(Urls::URL_RANGE, $this->json_encode_wrapper($body));
 
         $options = array_merge(['_documentClass' => $this->_documentClass], $options);
+
         return new Cursor($this->getConnection(), $response->getJson(), $options);
     }
 
@@ -1763,6 +1785,7 @@ class CollectionHandler extends Handler
         $response = $this->getConnection()->put(Urls::URL_NEAR, $this->json_encode_wrapper($body));
 
         $options = array_merge(['_documentClass' => $this->_documentClass], $options);
+
         return new Cursor($this->getConnection(), $response->getJson(), $options);
     }
 
@@ -1820,6 +1843,7 @@ class CollectionHandler extends Handler
         $response = $this->getConnection()->put(Urls::URL_WITHIN, $this->json_encode_wrapper($body));
 
         $options = array_merge(['_documentClass' => $this->_documentClass], $options);
+
         return new Cursor($this->getConnection(), $response->getJson(), $options);
     }
 
