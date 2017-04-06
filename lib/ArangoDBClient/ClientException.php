@@ -33,6 +33,62 @@ class ClientException extends Exception
     {
         return __CLASS__ . ': ' . $this->getMessage();
     }
+
+    protected $method, $url, $data;
+
+    /**
+     * @return mixed
+     */
+    public function getMethod()
+    {
+        return $this->method;
+    }
+
+    /**
+     * @param mixed $method
+     * @return ClientException
+     */
+    public function setMethod($method)
+    {
+        $this->method = $method;
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getUrl()
+    {
+        return $this->url;
+    }
+
+    /**
+     * @param mixed $url
+     * @return ClientException
+     */
+    public function setUrl($url)
+    {
+        $this->url = $url;
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getData()
+    {
+        return $this->data;
+    }
+
+    /**
+     * @param mixed $data
+     * @return ClientException
+     */
+    public function setData($data)
+    {
+        $this->data = $data;
+        return $this;
+    }
 }
 
 class_alias(ClientException::class, '\triagens\ArangoDb\ClientException');

@@ -467,7 +467,9 @@ class Connection
 
             $status = socket_get_status($handle);
             if ($status['timed_out']) {
-                throw new ClientException('Got a timeout while waiting for the server\'s response', 408);
+                $exception =  new ClientException('Got a timeout while waiting for the server\'s response', 408);
+                $exception->setUrl($url)->setMethod($method)->setData($data);
+                throw $exception;
             }
 
             if (!$this->_useKeepAlive) {
